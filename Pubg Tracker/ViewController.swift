@@ -6,6 +6,8 @@
 //  Copyright © 2018 Wallfly. All rights reserved.
 //
 import UIKit
+import SwiftyJSON
+import Alamofire
 
 class ViewController: UIViewController {
 
@@ -62,40 +64,21 @@ class ViewController: UIViewController {
         playerName = usernameTextField.text!
         pathURL += userRegion + "/players?filter[playerNames]=" + playerName
         url = URL(string: pathURL)
-        
+
         var request = URLRequest(url: url!)
         request.httpMethod = "GET"
         request.addValue(apiKey, forHTTPHeaderField: "Authorization")
         request.addValue("application/vnd.api+json", forHTTPHeaderField: "Accept")
-        let urlSession = URLSession.shared
 
-        let task = urlSession.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
-            guard error == nil else {
-                return
-            }
-            
-            guard let data = data else {
-                return
-            }
-            
-            do {
-                
-                // the data is returned in JSON format and needs to be converted into something that swift can work with
-                // we are converting it into a dictionary of type [String: Any]
-                if let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any] {
-                    print(json["data"]!)
-                    print(json["id"]!)
+        
+        Alamofire.request(request).responseJSON { response in
+            if let jsonValue = response.result.value {
+                let json = JSON(jsonValue)
+                if let playerID = json["data"][0]["id"].string{
+                    print(playerID)
                 }
-            } catch let error {
-                print(error.localizedDescription)
             }
-        })
-        
-        task.resume()
-
-        
-
-        
+        }
     }
     
     
